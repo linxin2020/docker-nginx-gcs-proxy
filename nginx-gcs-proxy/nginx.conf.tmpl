@@ -5,6 +5,11 @@ map $NOT_FOUND_MEANS_INDEX $serve_index_on_not_found {
     "true"  1;
 }
 
+map $uri $gcs_bucket {
+    default "";
+    ~^/(?<bucket_from_uri>[^/]+)(?:/|$) $bucket_from_uri;
+}
+
 server {
         listen ${LISTEN_PORT};
         server_tokens off;
@@ -14,7 +19,7 @@ server {
         }
 
         location = / {
-            rewrite ^.*$ /index.html last;
+            return 400;
         }
 
         location = /healthz/ {
@@ -23,6 +28,10 @@ server {
         }
 
         location / {
+            if ($gcs_bucket = "") {
+                return 400;
+            }
+
             proxy_set_header        Host storage.googleapis.com;
             proxy_set_header        Cookie "";
             proxy_set_header        Authorization "";
@@ -57,7 +66,7 @@ server {
             add_header              X-Cache $upstream_cache_status;
 
             error_page              404 = @not_found;
-            proxy_pass              https://storage.googleapis.com/${GCS_BUCKET_URL}$uri;
+            proxy_pass              https://storage.googleapis.com;
         }
 
         location @not_found {
@@ -75,10 +84,10 @@ server {
             proxy_method            GET;
             proxy_pass_request_body off;
             proxy_cache             google_cloud_storage;
-            proxy_cache_key         "$host/$proxy_host/index.html";
+            proxy_cache_key         "$host/$proxy_host/$gcs_bucket/index.html";
             proxy_cache_valid       200 1d;
             add_header              X-Cache $upstream_cache_status;
-            rewrite                 ^ /${GCS_BUCKET_URL}/index.html break;
+            rewrite                 ^ /$gcs_bucket/index.html break;
             proxy_pass              https://storage.googleapis.com;
         }
     }

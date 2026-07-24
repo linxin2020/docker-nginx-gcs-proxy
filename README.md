@@ -1,25 +1,32 @@
 # docker-nginx-gcs-proxy
-A Docker image for running Nginx as a caching proxy for a public Google Cloud Storage bucket.
+A Docker image for running Nginx as a caching proxy for public Google Cloud Storage buckets.
 
 ## Usage
 
 ```bash
 docker build -t nginx-gcs-proxy ./nginx-gcs-proxy
 docker run -d --name nginx-gcs-proxy \
-  -e GCS_BUCKET_URL="my-public-bucket/site" \
   -p 8080:8080 nginx-gcs-proxy
 
 ```
 
+Put the bucket name in the first URL path segment:
+
+```bash
+curl http://127.0.0.1:8080/my-public-bucket/path/to/object
+```
+
+The request above is proxied to
+`https://storage.googleapis.com/my-public-bucket/path/to/object`.
+
 ## Configuration
 
-The following tables lists the configurable environment variables of nginx-gcs-proxy and their default values.
+The following table lists the configurable environment variables of nginx-gcs-proxy and their default values.
 
 Variable | Description | Default
 --- | --- | ---
-`GCS_BUCKET_URL` | Bucket name, optionally followed by an object prefix. The proxy requests `https://storage.googleapis.com/<value>/<path>`. Do not include a leading/trailing slash or a full URL. | None - required!
 `LISTEN_PORT` | Server listen port | 8080
-`NOT_FOUND_MEANS_INDEX` | When requested path is not found in the bucket, return index.html. Useful when serving single page apps, like Angular, React, Ember. Possible values: "true", "false". | false
+`NOT_FOUND_MEANS_INDEX` | When an object is not found, request `index.html` from the same bucket. Useful when serving single-page apps. Possible values: `true`, `false`. | false
 
 ## Health-checking
 
@@ -56,5 +63,5 @@ docker build -t nginx-gcs-proxy ./nginx-gcs-proxy
 ## Testing
 
 ```bash
-docker run --rm -e GCS_BUCKET_URL="dummy" nginx-gcs-proxy nginx -t
+docker run --rm nginx-gcs-proxy nginx -t
 ```
