@@ -1,51 +1,13 @@
-user nginx;
-worker_processes  1;
+proxy_cache_path /var/cache/nginx keys_zone=google_cloud_storage:10m inactive=60m;
 
-error_log  /var/log/nginx/error.log warn;
-pid        /var/run/nginx.pid;
-
-
-events {
-    worker_connections  1024;
+map $NOT_FOUND_MEANS_INDEX $serve_index_on_not_found {
+    default 0;
+    "true"  1;
 }
 
-
-http {
-    include           /etc/nginx/mime.types;
-    default_type      application/octet-stream;
-    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" '
-                      '"$http_user_agent" "$http_x_forwarded_for"';
-    access_log        /var/log/nginx/access.log  main;
-    server_tokens     off;
-    gzip              on;
-    gzip_disable      "msie6";
-    gzip_comp_level   6;
-    gzip_min_length   1100;
-    gzip_buffers      16 8k;
-    gzip_proxied      any;
-    gzip_types
-        text/plain
-        text/css
-        text/js
-        text/xml
-        text/javascript
-        application/javascript
-        application/x-javascript
-        application/json
-        application/xml
-        application/xml+rss;
-    proxy_cache_path  /var/cache/nginx keys_zone=google-cloud-storage:10m inactive=60m;
-    resolver          8.8.8.8 valid=300s ipv6=off;
-    resolver_timeout  10s;
-
-    upstream google-cloud-storage {
-       server          'storage.googleapis.com';
-       keepalive       100;
-   }
-
-    server {
-        listen          {{ .Env.LISTEN_PORT }};
+server {
+        listen ${LISTEN_PORT};
+        server_tokens off;
 
         if ( $request_method !~ "GET|HEAD" ) {
             return 405;
@@ -80,20 +42,43 @@ http {
             proxy_hide_header       Cache-Control;
             proxy_ignore_headers    Set-Cookie;
             proxy_http_version      1.1;
+            proxy_ssl_server_name   on;
+            proxy_ssl_name          storage.googleapis.com;
             proxy_intercept_errors  on;
             proxy_method            GET;
             proxy_pass_request_body off;
 
             proxy_ignore_headers    Expires Cache-Control;
-            proxy_cache             google-cloud-storage;
+            proxy_cache             google_cloud_storage;
             proxy_cache_key         "$host/$proxy_host$uri";
             proxy_cache_valid       200 1d;
+            proxy_cache_valid       404 1m;
+            proxy_cache_revalidate  on;
             add_header              X-Cache $upstream_cache_status;
 
-        {{ if eq .Env.NOT_FOUND_MEANS_INDEX "true" }}
-            error_page              404 =200 /index.html;
-        {{ end }}
-            proxy_pass              http://google-cloud-storage/{{ .Env.GCS_BUCKET_URL }}$uri;
+            error_page              404 = @not_found;
+            proxy_pass              https://storage.googleapis.com/${GCS_BUCKET_URL}$uri;
+        }
+
+        location @not_found {
+            if ($serve_index_on_not_found = 0) {
+                return 404;
+            }
+
+            proxy_set_header        Host storage.googleapis.com;
+            proxy_set_header        Cookie "";
+            proxy_set_header        Authorization "";
+            proxy_set_header        Connection "";
+            proxy_http_version      1.1;
+            proxy_ssl_server_name   on;
+            proxy_ssl_name          storage.googleapis.com;
+            proxy_method            GET;
+            proxy_pass_request_body off;
+            proxy_cache             google_cloud_storage;
+            proxy_cache_key         "$host/$proxy_host/index.html";
+            proxy_cache_valid       200 1d;
+            add_header              X-Cache $upstream_cache_status;
+            rewrite                 ^ /${GCS_BUCKET_URL}/index.html break;
+            proxy_pass              https://storage.googleapis.com;
         }
     }
-}
