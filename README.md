@@ -17,6 +17,29 @@ docker run -d --name nginx-gcs-proxy \
 to the same path with `-v` to persist the cache across container replacements.
 The container creates the directory when needed and makes it writable by Nginx.
 
+### Docker Compose
+
+The included `docker-compose.yaml` builds the image and stores cached objects in
+a named Docker volume:
+
+```bash
+docker compose up -d --build
+```
+
+The host port, cache validity, and single-page application fallback can be
+overridden when starting the stack:
+
+```bash
+PROXY_PORT=9090 CACHE_VALIDITY=7d NOT_FOUND_MEANS_INDEX=true \
+  docker compose up -d --build
+```
+
+Stop the service without deleting its cache:
+
+```bash
+docker compose down
+```
+
 Put the bucket name in the first URL path segment:
 
 ```bash
