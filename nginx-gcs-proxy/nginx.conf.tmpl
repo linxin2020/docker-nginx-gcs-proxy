@@ -1,4 +1,4 @@
-proxy_cache_path ${CACHE_PATH} keys_zone=google_cloud_storage:10m inactive=60m;
+proxy_cache_path ${CACHE_PATH} keys_zone=google_cloud_storage:10m inactive=${CACHE_VALIDITY};
 
 map $NOT_FOUND_MEANS_INDEX $serve_index_on_not_found {
     default 0;
@@ -60,7 +60,7 @@ server {
             proxy_ignore_headers    Expires Cache-Control;
             proxy_cache             google_cloud_storage;
             proxy_cache_key         "$host/$proxy_host$uri";
-            proxy_cache_valid       200 1d;
+            proxy_cache_valid       200 ${CACHE_VALIDITY};
             proxy_cache_valid       404 1m;
             proxy_cache_revalidate  on;
             add_header              X-Cache $upstream_cache_status;
@@ -85,7 +85,7 @@ server {
             proxy_pass_request_body off;
             proxy_cache             google_cloud_storage;
             proxy_cache_key         "$host/$proxy_host/$gcs_bucket/index.html";
-            proxy_cache_valid       200 1d;
+            proxy_cache_valid       200 ${CACHE_VALIDITY};
             add_header              X-Cache $upstream_cache_status;
             rewrite                 ^ /$gcs_bucket/index.html break;
             proxy_pass              https://storage.googleapis.com;

@@ -18,5 +18,11 @@ case "${CACHE_PATH}" in
         ;;
 esac
 
+if ! printf '%s\n' "${CACHE_VALIDITY}" \
+    | grep -Eq '^[1-9][0-9]*(ms|s|m|h|d|w|M|y)$'; then
+    echo >&2 "CACHE_VALIDITY must be a positive Nginx time value, for example 12h, 7d, or 3M"
+    exit 1
+fi
+
 mkdir -p "${CACHE_PATH}"
 chown nginx:nginx "${CACHE_PATH}"
