@@ -25,11 +25,11 @@ The container creates the directory when needed and makes it writable by Nginx.
 
 ### Docker Compose
 
-The included `docker-compose.yaml` builds the image and stores cached objects in
-a named Docker volume:
+The included `docker-compose.yaml` pulls the published image and stores cached
+objects in a named Docker volume:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
 The host port, cache validity, and single-page application fallback can be
@@ -37,7 +37,7 @@ overridden when starting the stack:
 
 ```bash
 PROXY_PORT=9090 CACHE_VALIDITY=7d NOT_FOUND_MEANS_INDEX=true \
-  docker compose up -d --build
+  docker compose up -d
 ```
 
 Stop the service without deleting its cache:

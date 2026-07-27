@@ -1,8 +1,6 @@
 services:
   nginx-gcs-proxy:
-    build:
-      context: ./nginx-gcs-proxy
-    image: nginx-gcs-proxy:local
+    image: ghcr.io/linxin2020/docker-nginx-gcs-proxy:latest
     restart: unless-stopped
     ports:
       - "${PROXY_PORT:-8080}:8080"
