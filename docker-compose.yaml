@@ -7,6 +7,7 @@ services:
     environment:
       LISTEN_PORT: "8080"
       CACHE_PATH: /var/cache/nginx-gcs-proxy
+      CACHE_MAX_SIZE: "${CACHE_MAX_SIZE:-30G}"
       CACHE_VALIDITY: "${CACHE_VALIDITY:-3M}"
       NOT_FOUND_MEANS_INDEX: "${NOT_FOUND_MEANS_INDEX:-false}"
     volumes:

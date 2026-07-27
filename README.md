@@ -13,6 +13,7 @@ docker pull ghcr.io/linxin2020/docker-nginx-gcs-proxy:latest
 docker build -t nginx-gcs-proxy ./nginx-gcs-proxy
 docker run -d --name nginx-gcs-proxy \
   -e CACHE_PATH="/data/nginx-cache" \
+  -e CACHE_MAX_SIZE="30G" \
   -e CACHE_VALIDITY="3M" \
   -v /srv/nginx-gcs-cache:/data/nginx-cache \
   -p 8080:8080 nginx-gcs-proxy
@@ -36,7 +37,8 @@ The host port, cache validity, and single-page application fallback can be
 overridden when starting the stack:
 
 ```bash
-PROXY_PORT=9090 CACHE_VALIDITY=7d NOT_FOUND_MEANS_INDEX=true \
+PROXY_PORT=9090 CACHE_MAX_SIZE=10G CACHE_VALIDITY=7d \
+  NOT_FOUND_MEANS_INDEX=true \
   docker compose up -d
 ```
 
@@ -62,6 +64,7 @@ The following table lists the configurable environment variables of nginx-gcs-pr
 Variable | Description | Default
 --- | --- | ---
 `CACHE_PATH` | Absolute cache directory inside the container. Mount a host directory to this path to persist cached objects. | `/var/cache/nginx`
+`CACHE_MAX_SIZE` | Maximum size of cached files. Accepts a positive Nginx size value such as `512M`, `10G`, or `30G`. | `30G`
 `CACHE_VALIDITY` | How long successful responses remain valid and unused cache files are retained. Accepts a positive Nginx time value such as `12h`, `7d`, or `3M` (uppercase `M` means months; lowercase `m` means minutes). | `3M`
 `LISTEN_PORT` | Server listen port | 8080
 `NOT_FOUND_MEANS_INDEX` | When an object is not found, request `index.html` from the same bucket. Useful when serving single-page apps. Possible values: `true`, `false`. | false

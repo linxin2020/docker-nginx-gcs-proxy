@@ -1,4 +1,4 @@
-proxy_cache_path ${CACHE_PATH} keys_zone=google_cloud_storage:10m inactive=${CACHE_VALIDITY};
+proxy_cache_path ${CACHE_PATH} keys_zone=google_cloud_storage:10m inactive=${CACHE_VALIDITY} max_size=${CACHE_MAX_SIZE} use_temp_path=off;
 
 map $NOT_FOUND_MEANS_INDEX $serve_index_on_not_found {
     default 0;

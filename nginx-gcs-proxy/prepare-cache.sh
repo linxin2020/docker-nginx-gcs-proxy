@@ -24,5 +24,11 @@ if ! printf '%s\n' "${CACHE_VALIDITY}" \
     exit 1
 fi
 
+if ! printf '%s\n' "${CACHE_MAX_SIZE}" \
+    | grep -Eq '^[1-9][0-9]*[kKmMgG]?$'; then
+    echo >&2 "CACHE_MAX_SIZE must be a positive Nginx size value, for example 512M, 30G, or 100g"
+    exit 1
+fi
+
 mkdir -p "${CACHE_PATH}"
 chown nginx:nginx "${CACHE_PATH}"
