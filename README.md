@@ -1,6 +1,12 @@
 # docker-nginx-gcs-proxy
 A Docker image for running Nginx as a caching proxy for public Google Cloud Storage buckets.
 
+Published multi-platform images are available from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/linxin2020/docker-nginx-gcs-proxy:latest
+```
+
 ## Usage
 
 ```bash
