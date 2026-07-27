@@ -6,9 +6,15 @@ A Docker image for running Nginx as a caching proxy for public Google Cloud Stor
 ```bash
 docker build -t nginx-gcs-proxy ./nginx-gcs-proxy
 docker run -d --name nginx-gcs-proxy \
+  -e CACHE_PATH="/data/nginx-cache" \
+  -v /srv/nginx-gcs-cache:/data/nginx-cache \
   -p 8080:8080 nginx-gcs-proxy
 
 ```
+
+`CACHE_PATH` is the path inside the container. Mount the desired host directory
+to the same path with `-v` to persist the cache across container replacements.
+The container creates the directory when needed and makes it writable by Nginx.
 
 Put the bucket name in the first URL path segment:
 
@@ -25,6 +31,7 @@ The following table lists the configurable environment variables of nginx-gcs-pr
 
 Variable | Description | Default
 --- | --- | ---
+`CACHE_PATH` | Absolute cache directory inside the container. Mount a host directory to this path to persist cached objects. | `/var/cache/nginx`
 `LISTEN_PORT` | Server listen port | 8080
 `NOT_FOUND_MEANS_INDEX` | When an object is not found, request `index.html` from the same bucket. Useful when serving single-page apps. Possible values: `true`, `false`. | false
 
